@@ -1,10 +1,8 @@
 # Import required libraries
-from pathlib import Path
 import streamlit as st
 import pandas as pd
 import requests
 import tempfile
-import time
 import json
 import cv2
 import os
@@ -36,7 +34,6 @@ with st.sidebar:
     st.title('ANPR')
     st.subheader('Automatic Number Plate Recognition')
     st.write('Upload a video file to detect number plates and faces')
-
 
 if VIDEO_FILE is not None:
     st.write('Video file uploaded successfully')
@@ -77,13 +74,24 @@ if st.button('Analyze'):
         # Read video file
         video_capture = cv2.VideoCapture(VIDEO_FILE)
 
+        # set the frame extraction rate (1 frame per second)
+        frame_rate = 1
+
+        # get the frame rate of the video
+        fps = int(video_capture.get(cv2.CAP_PROP_FPS))
+
+        # calculate the number of frames to skip
+        skip_frames = fps // frame_rate
+
         # Save all frames to a folder
         count = 0
         while True:
             ret, frame = video_capture.read()
             if ret:
-                cv2.imwrite('frames/frame%d.jpg' % count, frame)
-                count += 1
+                # save the frame if it's time to do so
+                if count % skip_frames == 0:
+                    cv2.imwrite('frames/frame%d.jpg' % count, frame)
+                    count += 1
             else:
                 break
 
